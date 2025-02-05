@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Set variables
+LOG_FILE="access.log"
+SEARCH_DIR="/path/to/search"  # Change to your directory
+TRANSFORM_TEXT="AbICdZEt3Gh4s...."
+DOCKER_IMAGE="my-custom-nginx"
+DOCKER_USER="your-dockerhub-username"  # Change to your Docker Hub username
+NGINX_CONF="/etc/nginx/nginx.conf"
+GITHUB_REPO="your-github-repo-url"  # Change to your GitHub repository URL
+PDF_FILE="/mnt/data/task_results_with_color_screenshots.pdf"
+
+# Task 1: Count successful log statements
+echo "Counting successful log statements..."
+SUCCESS_COUNT=$(grep " 200 " "$LOG_FILE" | wc -l)
+echo "Total successful log statements: $SUCCESS_COUNT"
+
+# Task 2: Find files containing DEBUG, ERROR, INFO
+echo "Searching for files with DEBUG, ERROR, INFO..."
+grep -rilE "DEBUG|ERROR|INFO" "$SEARCH_DIR"
+
+# Task 3: Transform string using sed
+echo "Transforming text using sed..."
+echo "$TRANSFORM_TEXT" | sed 's/[A-Z]/\L&/g; s/[0-9]/-/g; s/t//g'
+
+# Task 4: Check balanced braces using Python
+echo "Checking balanced braces..."
+python3 - <<EOF
+def are_braces_balanced(s):
+    stack = []
+    for char in s:
+        if char == '{':
+            stack.append(char)
+        elif char == '}':
+            if not stack or stack.pop() != '{':
+                print("Braces are NOT balanced")
+                exit(1)
+    print("Braces are balanced" if not stack else "Braces are NOT balanced")
+
+are_braces_balanced("{ { } } { }")  # Test case
+EOF
+
+# Task 5: Create and Publish Docker Image
+echo "Creating Dockerfile..."
+cat <<EOL > Dockerfile
+FROM nginx:latest
+COPY index.html /usr/share/nginx/html/index.html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+EOL
+
+echo "Building and running Docker container..."
+docker build -t "$DOCKER_IMAGE" .
+docker run -d -p 8080:80 "$DOCKER_IMAGE"
+
+echo "Pushing Docker image to Docker Hub..."
+docker login
+docker tag "$DOCKER_IMAGE" "$DOCKER_USER/$DOCKER_IMAGE"
+docker push "$DOCKER_USER/$DOCKER_IMAGE"
+
+# Task 6: Configure Nginx for forwarding requests
+echo "Configuring Nginx..."
+cat <<EOL >> "$NGINX_CONF"
+location /a {
+    proxy_pass http://localhost:8000/welcome/home;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+}
+EOL
+
+echo "Restarting Nginx..."
+systemctl restart nginx
+
+
