@@ -7,8 +7,7 @@ TRANSFORM_TEXT="AbICdZEt3Gh4s...."
 DOCKER_IMAGE="my-custom-nginx"
 DOCKER_USER="your-dockerhub-username"  # Change to your Docker Hub username
 NGINX_CONF="/etc/nginx/nginx.conf"
-GITHUB_REPO="your-github-repo-url"  # Change to your GitHub repository URL
-PDF_FILE="/mnt/data/task_results_with_color_screenshots.pdf"
+
 
 # Task 1: Count successful log statements
 echo "Counting successful log statements..."
